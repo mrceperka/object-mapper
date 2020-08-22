@@ -171,7 +171,7 @@ Parameters:
 - `castBoolLike`
     - accepts also `0` (int), `1` (int), `'true'` (string, any case), `'false'` (string, any case)
     - value is casted to respective bool value
-    - default `false`
+    - default `false` - bool like are not casted
 
 #### DateTimeRule
 - TODO
@@ -198,18 +198,18 @@ Parameters:
 - `castFloatLike`
     - accepts also numeric strings (float and int)
     - value is casted to respective float value
-    - default `false`
+    - default `false` - float like are not casted
     - TODO - zdokumentovat formát
 - `unsigned`
     - accepts only positive numbers
-    - default `true`
+    - default `true` - only positive numbers are accepted
 - `min`
     - minimal accepted value
-    - default `null`
+    - default `null` - no limit
     - e.g. `10.0`
 - `max`
     - maximal accepted value
-    - default `null`
+    - default `null` - no limit
     - e.g. `100.0`
 
 #### InstanceRule
@@ -258,18 +258,18 @@ Parameters:
 - `castIntLike`
     - accepts also numeric strings (int)
     - value is casted to respective int value
-    - default `false`
+    - default `false` - int like are not casted
     - TODO - zdokumentovat formát
 - `unsigned`
     - accepts only positive numbers
-    - default `true`
+    - default `true` - only positive numbers are accepted
 - `min`
     - minimal accepted value
-    - default `null`
+    - default `null` - no limit
     - e.g. `10`
 - `max`
     - maximal accepted value
-    - default `null`
+    - default `null` - no limit
     - e.g. `100`
 
 #### ListOfRule
@@ -286,7 +286,7 @@ class VO extends ValueObject
 {
 
     /**
-     * @var array<mixed>
+     * @var array<int, mixed>
      * @ListOf(
      *      @MixedValue()
      * )
@@ -360,7 +360,7 @@ Parameters:
 - `castEmptyString`
     - accepts any string with only empty characters
     - value is casted to null
-    - default `false`
+    - default `false` - empty strings are not casted
     - e.g. `''`, `"\t"` ,`"\t\n\r""`
 
 #### ObjectRule
@@ -427,19 +427,19 @@ class VO extends ValueObject
 Parameters:
 - `minLength`
     - minimal string length
-    - default `null`
+    - default `null` - no limit
     - e.g. `10`
 - `maxLength`
     - maximal string length
-    - default `null`
+    - default `null` - no limit
     - e.g. `100`
 - `notEmpty`
     - string must not contain *only* empty characters
-    - default `false`
+    - default `false` - empty strings are allowed
     - e.g. `''`, `"\t"` ,`"\t\n\r""`
 - `pattern`
     - regex pattern which must match
-    - default `null`
+    - default `null` - no validation by pattern
     - e.g. `/[\s\S]/`
 
 #### StructureRule
@@ -474,6 +474,7 @@ class VO extends ValueObject
 Parameters:
 - `useKeys`
     - use keys for enumeration instead of values
+    - default `false` - values are used for enumeration
 
 #### UrlRule
 - TODO

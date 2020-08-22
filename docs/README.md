@@ -326,7 +326,7 @@ class VO extends ValueObject
 
     /**
      * @var mixed
-     * @MixedValue
+     * @MixedValue()
      */
     public $field;
 

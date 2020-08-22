@@ -29,13 +29,126 @@ TODO
 TODO
 
 #### AllOfRule
-- TODO
+
+Expects all rules to match
+After first failure is validation terminated, other rules are skipped
+Rules are executed from first to last
+
+```php
+use Orisai\ObjectMapper\Annotation\Expect\AllOf;
+use Orisai\ObjectMapper\Annotation\Expect\IntValue;
+use Orisai\ObjectMapper\Annotation\Expect\NullValue;
+use Orisai\ObjectMapper\Annotation\Expect\StringValue;
+use Orisai\ObjectMapper\ValueObject;
+
+class VO extends ValueObject
+{
+
+    /**
+     * @var string|int|null
+     * @AllOf(
+     *      @StringValue(),
+     *      @IntValue(),
+     *      @NullValue(),
+     * )
+     */
+    public $field;
+
+}
+```
+
+Parameters:
+- `rules`
+    - accepts list of rules by which is the field validated
+    - required
 
 #### AnyOfRule
-- TODO
+
+Expects any of rules to match
+Rules are executed from first to last
+Result of first rule which match is used, other rules are skipped
+
+```php
+use Orisai\ObjectMapper\Annotation\Expect\AnyOf;
+use Orisai\ObjectMapper\Annotation\Expect\IntValue;
+use Orisai\ObjectMapper\Annotation\Expect\NullValue;
+use Orisai\ObjectMapper\Annotation\Expect\StringValue;
+use Orisai\ObjectMapper\ValueObject;
+
+class VO extends ValueObject
+{
+
+    /**
+     * @var string|int|null
+     * @AnyOf(
+     *      @StringValue(),
+     *      @IntValue(),
+     *      @NullValue(),
+     * )
+     */
+    public $field;
+
+}
+```
+
+Parameters:
+- `rules`
+    - accepts list of rules by which is the field validated
+    - required
 
 #### ArrayOfRule
-- TODO
+
+Expects array
+
+```php
+use Orisai\ObjectMapper\Annotation\Expect\ArrayOf;
+use Orisai\ObjectMapper\Annotation\Expect\IntValue;
+use Orisai\ObjectMapper\Annotation\Expect\MixedValue;
+use Orisai\ObjectMapper\Annotation\Expect\StringValue;
+use Orisai\ObjectMapper\ValueObject;
+
+class VO extends ValueObject
+{
+
+    /**
+     * @var array<mixed>
+     * @ArrayOf(
+     *      @MixedValue()
+     * )
+     */
+    public array $field;
+
+    /**
+     * @var array<string, int>
+     * @ArrayOf(
+     *      keyType=@StringValue(),
+     *      itemType=@IntValue(),
+     * )
+     */
+    public array $anotherField;
+
+}
+```
+
+Parameters:
+- `itemType`
+    - accepts rule which is used to validate items
+    - required
+- `keyType`
+    - accepts rule which is used to validate items
+    - default `null` - keys are not validated
+- `minItems`
+    - minimal count of items
+    - default `null` - no limit
+    - e.g. `10`
+- `maxItems`
+    - maximal count of items
+    - if limit is exceeded then no other validations of array are performed
+    - default `null` - no limit
+    - e.g. `100`
+- `mergeDefaults`
+    - merge default value into array after it is validated
+    - default `false` - default is not merged
 
 #### BoolRule
 
@@ -160,7 +273,45 @@ Parameters:
     - e.g. `100`
 
 #### ListOfRule
-- TODO
+
+Expects list
+All keys must be incremental integers
+
+```php
+use Orisai\ObjectMapper\Annotation\Expect\ListOf;
+use Orisai\ObjectMapper\Annotation\Expect\MixedValue;
+use Orisai\ObjectMapper\ValueObject;
+
+class VO extends ValueObject
+{
+
+    /**
+     * @var array<mixed>
+     * @ListOf(
+     *      @MixedValue()
+     * )
+     */
+    public array $field;
+
+}
+```
+
+Parameters:
+- `itemType`
+    - accepts rule which is used to validate items
+    - required
+- `minItems`
+    - minimal count of items
+    - default `null` - no limit
+    - e.g. `10`
+- `maxItems`
+    - maximal count of items
+    - if limit is exceeded then no other validations of array are performed
+    - default `null` - no limit
+    - e.g. `100`
+- `mergeDefaults`
+    - merge default value into array after it is validated
+    - default `false` - default is not merged
 
 #### MixedRule
 

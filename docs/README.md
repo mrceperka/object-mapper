@@ -174,7 +174,31 @@ Parameters:
     - default `false` - bool like are not casted
 
 #### DateTimeRule
-- TODO
+
+Expects datetime as a string or int
+Returns instance of `DateTimeImmutable`
+
+```php
+use DateTimeImmutable;
+use Orisai\ObjectMapper\Annotation\Expect\DateTime;
+use Orisai\ObjectMapper\ValueObject;
+
+class VO extends ValueObject
+{
+
+    /** @DateTime() */
+    public DateTimeImmutable $field;
+
+}
+```
+
+Parameters:
+- `format`
+    - expected date time format
+    - recommended is `DateTimeInterface::ATOM`
+    - default `null` - tries to parse datetime automatically via `new DateTimeImmutable`
+    - TODO - custom formáty - timestamp, ISO8601-fixed
+    - TODO - link na formáty v php dokumentaci
 
 #### FloatRule
 
@@ -443,7 +467,42 @@ Parameters:
     - e.g. `/[\s\S]/`
 
 #### StructureRule
-- TODO
+
+Expects array with predefined structure
+Returns instance of `ValueObject`
+It performs a call of `Processor`.
+Works even if value was not sent at all, so value objects which fields all have default values could be initialized
+and only errors for required fields are displayed.
+
+```php
+use Orisai\ObjectMapper\Annotation\Expect\MixedValue;
+use Orisai\ObjectMapper\Annotation\Expect\Structure;
+use Orisai\ObjectMapper\ValueObject;
+
+class VO extends ValueObject
+{
+
+    /** @Structure(InnerVO::class) */
+    public InnerVO $field;
+
+}
+
+class InnerVO extends ValueObject
+{
+
+    /**
+     * @var mixed
+     * @MixedValue()
+     */
+    public $field;
+
+}
+```
+
+Parameters:
+- `type`
+    - subclass of `ValueObject` which should be created
+    - required
 
 #### ValueEnumRule
 

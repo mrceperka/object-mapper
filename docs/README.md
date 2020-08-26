@@ -20,9 +20,34 @@ TODO
 
 TODO
 - processor
+    - filling defaults
+    - running rules for all fields
+    - invoking callbacks
+    - filling object
 - handling exceptions
     - orisai/exceptions
-- formatters
+- default values and their requirement
+    - explicit/implicit null
+    - other defaults
+
+## ValueObject
+
+TODO
+- mapped fields (properties)
+    - each need own rule
+    - terminology - field/property difference
+- value object and structure
+    - terminology
+- rules/callbacks/docs inheritance
+- magic
+
+## Options
+
+TODO
+- required values
+- prefill values (no initialization mode)
+- raw values
+- dynamic contexts
 
 ## Rules
 
@@ -31,8 +56,8 @@ TODO
 #### AllOfRule
 
 Expects all rules to match
-After first failure is validation terminated, other rules are skipped
-Rules are executed from first to last
+- After first failure is validation terminated, other rules are skipped
+- Rules are executed from first to last
 
 ```php
 use Orisai\ObjectMapper\Annotation\Expect\AllOf;
@@ -65,8 +90,8 @@ Parameters:
 #### AnyOfRule
 
 Expects any of rules to match
-Rules are executed from first to last
-Result of first rule which match is used, other rules are skipped
+- Rules are executed from first to last
+- Result of first rule which match is used, other rules are skipped
 
 ```php
 use Orisai\ObjectMapper\Annotation\Expect\AnyOf;
@@ -176,7 +201,7 @@ Parameters:
 #### DateTimeRule
 
 Expects datetime as a string or int
-Returns instance of `DateTimeImmutable`
+- Returns instance of `DateTimeImmutable`
 
 ```php
 use DateTimeImmutable;
@@ -203,7 +228,7 @@ Parameters:
 #### FloatRule
 
 Expects float or int
-Int is casted to float
+- Int is casted to float
 
 ```php
 use Orisai\ObjectMapper\Annotation\Expect\FloatValue;
@@ -239,7 +264,7 @@ Parameters:
 #### InstanceRule
 
 Expects an instance of class
-Use ObjectRule to accept any object
+- Use ObjectRule to accept any object
 
 ```php
 use Orisai\ObjectMapper\Annotation\Expect\InstanceValue;
@@ -299,7 +324,7 @@ Parameters:
 #### ListOfRule
 
 Expects list
-All keys must be incremental integers
+- All keys must be incremental integers
 
 ```php
 use Orisai\ObjectMapper\Annotation\Expect\ListOf;
@@ -390,7 +415,7 @@ Parameters:
 #### ObjectRule
 
 Expects any object
-Use InstanceRule to accept instance of specific type
+- Use InstanceRule to accept instance of specific type
 
 ```php
 use Orisai\ObjectMapper\Annotation\Expect\ObjectValue;
@@ -469,10 +494,10 @@ Parameters:
 #### StructureRule
 
 Expects array with predefined structure
-Returns instance of `ValueObject`
-It performs a call of `Processor`.
-Works even if value was not sent at all, so value objects which fields all have default values could be initialized
+- Returns instance of `ValueObject`
+- Works even if value was not sent at all, so value objects which fields all have default values could be initialized
 and only errors for required fields are displayed.
+    - TODO - pouze pokud není v rámci složeného typu a pokud se používá defaultní mód
 
 ```php
 use Orisai\ObjectMapper\Annotation\Expect\MixedValue;
@@ -536,30 +561,246 @@ Parameters:
     - default `false` - values are used for enumeration
 
 #### UrlRule
-- TODO
+
+Expects valid url address
+
+```php
+use Orisai\ObjectMapper\Annotation\Expect\Url;
+use Orisai\ObjectMapper\ValueObject;
+
+class VO extends ValueObject
+{
+
+    /** @Url() */
+    public string $field;
+
+}
+```
+
+Parameters:
+- no parameters
 
 ### Add rules
-- rule manager, mapping
+- TODO - rule manager, mapping
+
+### Create own rules
+- TODO
 
 ## Callbacks
 
 TODO
 - before
+    - add and remove fields
 - after
-- services
-    - base
-    - nette
-- non-static/static
-- class/method
-- errors
-- context
-- return type
+    - add and remove fields
+        - too late, skipped and missing fields are already handled
+        - TODO - maybe could throw exception
+- validations, errors
+- field names are always used
+- contexts
 
-## ValueObject
+### Before and after validation
 
-- mapped fields (properties) - each need own rule
-- rules/callbacks/docs inheritance
-- magic
+TODO
+
+### Class and property
+
+TODO
+    - v jaké fázi se volají
+    - s jakými daty
+    - jaký je dostupný kontext
+    - property
+        - nevolá se, když není dostupná hodnota
+        - když je hodnota výchozí, tak ??
+
+### Return types
+
+Callbacks may or may not return value.
+In PHP it is not possible to differentiate between `return;` and `return null;` when value is assigned to variable
+so if callback returns value it must do it every time.
+Object mapper infers whether value is returned from method return type.
+With `void` value is not expected, with every other type including no type value is expected.
+
+```php
+use Orisai\ObjectMapper\Annotation\Callback\Before;
+use Orisai\ObjectMapper\Annotation\Expect\StringValue;
+use Orisai\ObjectMapper\ValueObject;
+
+class DTO extends ValueObject
+{
+
+	/**
+	 * @StringValue()
+	 * @Before("beforeField1")
+	 */
+	public string $field1;
+
+	/**
+	 * @StringValue()
+	 * @Before("beforeField2")
+	 */
+	public string $field2;
+
+	/**
+	 * @param mixed $value
+	 */
+	public static function beforeField1($value): void
+	{
+		// Can't return value, has void return type
+	}
+
+	/**
+	 * @param mixed $value
+	 * @return mixed
+	 */
+	public static function beforeField2($value)
+	{
+		// Must return value, has non-void or none return type
+		return $value;
+	}
+
+}
+```
+
+### Services and instance callbacks
+
+Non-static methods can be used in case services are needed in callbacks.
+Object mapper initializes value object and injects services via `ObjectCreator`.
+
+> Do not change mapped properties values directly, `Processor` will always override them after "after class" callback
+
+```php
+use Orisai\ObjectMapper\Annotation\Callback\Before;
+use Orisai\ObjectMapper\ValueObject;
+
+/**
+ * @Before("beforeClass")
+ */
+class DTO extends ValueObject
+{
+
+	private MyService $service;
+
+	public function __construct(MyService $service)
+	{
+		$this->service = $service;
+	}
+
+	/**
+	 * @param array<mixed> $data
+	 */
+	public function beforeClass(array $data): void
+	{
+		// Do whatever you want with service
+	}
+
+}
+```
+
+#### With basic setup
+
+Basic setup uses `DefaultObjectCreator` which has no ability to create services. DIC-specific implementation is required.
+
+#### With Nette
+
+Setup with Nette DI uses `NetteObjectCreator`.
+It creates value objects via DIC and allows you to request autowired services in constructor.
+
+> Option `di > export > types` (`DIExtension`) is required to be enabled for this functionality.
+
+### Runtime
+
+Callbacks can be executed depending on whether objects are initialized (`$processor->process(...);`)
+or not (`$processor->processWithoutInitialization(...)`).
+
+It may be useful for object initialization in after callbacks.
+Also in case object-initializing rules are used then in after callbacks are instances already created.
+
+Set one of the `CallbackRuntime`s
+- `CallbackRuntime::ALWAYS` - default, run callback for both `process()` and `processWithoutInitialization()`
+- `CallbackRuntime::INITIALIZATION` - run callback for `process()`
+- `CallbackRuntime::PROCESSING` - run callback for `processWithoutInitialization()`
+
+```php
+use Orisai\ObjectMapper\Annotation\Callback\After;
+use Orisai\ObjectMapper\Annotation\Expect\StringValue;
+use Orisai\ObjectMapper\Callbacks\CallbackRuntime;
+use Orisai\ObjectMapper\ValueObject;
+
+class DTO extends ValueObject
+{
+
+	/**
+	 * @StringValue()
+	 * @After(method="beforeField", runtime=CallbackRuntime::INITIALIZATION)
+	 */
+	public UnicodeString $field;
+
+	public static function afterField(string $value): UnicodeString
+	{
+		return new UnicodeString($value);
+	}
+
+}
+```
+
+Callbacks can also differentiate behavior internally based on context
+
+```php
+use Orisai\ObjectMapper\Annotation\Callback\After;
+use Orisai\ObjectMapper\Annotation\Expect\StringValue;
+use Orisai\ObjectMapper\Callbacks\CallbackRuntime;
+use Orisai\ObjectMapper\Context\FieldContext;
+use Orisai\ObjectMapper\ValueObject;
+
+class DTO extends ValueObject
+{
+
+	/**
+	 * @StringValue()
+	 * @After(method="afterField", runtime=CallbackRuntime::ALWAYS)
+	 */
+	public UnicodeString $field;
+
+	/**
+	 * @return string|UnicodeString
+	 */
+	public static function afterField(string $value, FieldContext $context)
+	{
+		if ($context->isInitializeObjects()) {
+			return new UnicodeString($value);
+		}
+
+		return $value;
+	}
+
+}
+```
+
+## Formatters
+
+Formatters are classes used to transform value objects metadata and validation errors into various formats
+
+### Errors
+
+TODO
+
+### Documentation
+
+TODO
+
+## Skipped initialization
+
+TODO - process without initialization
+
+## Skipped properties
+
+TODO
+- callbacks
+    - not available in after class callback
+    - before class callback is okay
+    - class callbacks are not invoked after skipped property initialization
+    - property callbacks are invoked when property is initialized
 
 ## Documentation
 
@@ -575,3 +816,5 @@ TODO
 TODO
 - meta sources
     - annotations
+- annotations
+    - create own
